@@ -33,9 +33,64 @@ export const useBeverageStore = defineStore("BeverageStore", {
   }),
 
   actions: {
-    init() {},
-    makeBeverage() {},
+    init() {
+      onSnapshot(collection(db, "bases"), (bases_snapshot: QuerySnapshot) =>{
+        this.bases = bases_snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()})) as BaseBeverageType[];
 
-    showBeverage() {},
+        if (!this.currentBase && this.bases.length >0){
+          this.currentBase = this.bases[0];
+        }
+      });
+
+      onSnapshot(collection(db, "creamers"), (creamers_snapshot: QuerySnapshot) =>{
+        this.creamers = creamers_snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()})) as CreamerType[];
+
+        if (!this.currentCreamer && this.creamers.length >0){
+          this.currentCreamer = this.creamers[0];
+        }
+      });
+
+      onSnapshot(collection(db, "syrups"), (syrups_snapshot: QuerySnapshot) =>{
+        this.syrups = syrups_snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()})) as SyrupType[];
+
+         if (!this.currentSyrup && this.syrups.length >0){
+          this.currentSyrup = this.syrups[0];
+        }
+      });
+
+      onSnapshot(collection(db, "beverages"), (beverages_snapshot: QuerySnapshot) =>{
+        this.beverages = beverages_snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()})) as BeverageType[];
+
+         if (!this.currentBeverage && this.beverages.length >0){
+          this.currentBeverage = this.beverages[0];
+        }
+      });
+    },
+    async makeBeverage() {
+      if ((this.currentName.trim() === "") || (!this.currentBase || !this.currentCreamer || !this.currentSyrup))
+        {
+          return;
+        }
+      
+
+      const db_ref = doc(collection(db, "beverages"))
+      const drink: BeverageType=
+      {
+        id: db_ref.id,
+        name: this.currentName,
+        temp: this.currentTemp,
+        base: this.currentBase,
+        syrup: this.currentSyrup,
+        creamer: this.currentCreamer,
+      };
+      await setDoc(db_ref, drink)
+    },
+    showBeverage(drink: BeverageType) {
+      this.currentName = drink.name;
+      this.currentTemp= drink.temp;
+      this.currentBase=  drink.base;
+      this.currentSyrup = drink.syrup;
+      this.currentCreamer = drink.creamer;
+    },
   },
 });
